@@ -1,11 +1,12 @@
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const SHELL_CACHE = `bp-shell-${CACHE_VERSION}`;
 const FONT_CACHE = `bp-fonts-${CACHE_VERSION}`;
 const API_CACHE = `bp-api-${CACHE_VERSION}`;
 const VALID_CACHES = new Set([SHELL_CACHE, FONT_CACHE, API_CACHE]);
 
 const SHELL_ASSETS = [
-  './bible-promises.html',
+  './',
+  './index.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -99,7 +100,7 @@ self.addEventListener('fetch', (event) => {
 
   // Same-origin app shell and navigation
   if (url.origin === self.location.origin) {
-    const isAppShell = url.pathname.endsWith('/bible-promises.html') || url.pathname.endsWith('/');
+    const isAppShell = url.pathname.endsWith('/index.html') || url.pathname.endsWith('/bible-promises.html') || url.pathname.endsWith('/');
     if (req.mode === 'navigate' || isAppShell) {
       event.respondWith(
         caches.open(SHELL_CACHE).then(async (cache) => {
@@ -107,11 +108,11 @@ self.addEventListener('fetch', (event) => {
             const resp = await networkWithTimeout(req, 3000);
             const ct = resp.headers.get('content-type') || '';
             if (resp && resp.ok && isAppShell && ct.includes('text/html')) {
-              cache.put('./bible-promises.html', resp.clone());
+              cache.put('./index.html', resp.clone());
             }
             return resp;
           } catch {
-            return (await cache.match(req)) || (await cache.match('./bible-promises.html'));
+            return (await cache.match(req)) || (await cache.match('./index.html')) || (await cache.match('./'));
           }
         })
       );
@@ -143,7 +144,7 @@ self.addEventListener('notificationclick', (event) => {
         if ('focus' in client) return client.focus();
       }
       if (self.clients.openWindow) {
-        return self.clients.openWindow('./bible-promises.html');
+        return self.clients.openWindow('./');
       }
     })
   );

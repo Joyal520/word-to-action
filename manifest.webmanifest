@@ -2,7 +2,7 @@
   "name": "Bible Promises — Daily Scripture & Prayer",
   "short_name": "Bible Promises",
   "description": "Daily Bible promises in Tamil and English with Scripture-based confessions and prayers. Works offline.",
-  "start_url": "./bible-promises.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
