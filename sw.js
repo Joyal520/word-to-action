@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const SHELL_CACHE = `bp-shell-${CACHE_VERSION}`;
 const FONT_CACHE = `bp-fonts-${CACHE_VERSION}`;
 const API_CACHE = `bp-api-${CACHE_VERSION}`;

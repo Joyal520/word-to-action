@@ -439,7 +439,9 @@ const UI_ICO={
   dl:ico('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',16),
   ul:ico('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/>',16),
   trash:ico('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',15),
-  spark:ico('<path d="M12 3l1.8 4.8L19 9.5l-4.2 2.9L16 17l-4-2.8L8 17l1.2-4.6L5 9.5l5.2-1.7z"/>',16)
+  spark:ico('<path d="M12 3l1.8 4.8L19 9.5l-4.2 2.9L16 17l-4-2.8L8 17l1.2-4.6L5 9.5l5.2-1.7z"/>',16),
+  sun:ico('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',15),
+  moon:ico('<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>',15)
 };
 const CAT_SVG={
   fear:'<path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6l7-3z"/>',
@@ -493,7 +495,12 @@ const I={
     promise:'Promise',conf:'My Confession',pray:'My Prayer',und:'Understanding the Verse',
     stepScript:'Scripture',stepConf:'Confession',stepPray:'Prayer',
     next:'Next',back:'Back',prevP:'Prev',nextP:'Next',todayBtn:'Today',
-    save:'Save',saved:'Saved',remove:'Remove',share:'Share',amen:'Amen',
+    save:'Save Promise',saved:'Promise Saved',saveConf:'Save Confession',savedConf:'Confession Saved',
+    remove:'Remove',share:'Share',amen:'Amen',
+    morning:'Morning',evening:'Evening',morningTitle:"Morning's Promise",eveningTitle:"Evening's Promise",
+    savedTabP:'Promises',savedTabC:'Confessions',
+    noSavedConf:'No saved confessions yet. Open My Confession on any promise and tap Save Confession.',
+    savedPos:(a,b)=>`Saved ${a} of ${b}`,nextSaved:'Next Saved',backSaved:'Back to Saved',readFullDev:'Read Confession & Prayer',
     search:'Search reference, title, verse, keyword…',searchSaved:'Search saved promises…',
     allCats:'All categories',noRes:'No promises matched your search.',
     noSaved:'No saved promises yet. Tap Save on any promise.',
@@ -534,7 +541,12 @@ const I={
     promise:'வாக்குத்தத்தம்',conf:'என் விசுவாச அறிக்கை',pray:'என் ஜெபம்',und:'வசனத்தின் பொருள்',
     stepScript:'வேதவசனம்',stepConf:'அறிக்கை',stepPray:'ஜெபம்',
     next:'அடுத்தது',back:'பின்',prevP:'முந்தையது',nextP:'அடுத்தது',todayBtn:'இன்று',
-    save:'சேமி',saved:'சேமிக்கப்பட்டது',remove:'நீக்கு',share:'பகிர்',amen:'ஆமென்',
+    save:'வாக்குத்தத்தம் சேமி',saved:'சேமிக்கப்பட்டது',saveConf:'அறிக்கை சேமி',savedConf:'அறிக்கை சேமிக்கப்பட்டது',
+    remove:'நீக்கு',share:'பகிர்',amen:'ஆமென்',
+    morning:'காலை',evening:'மாலை',morningTitle:'காலை வாக்குத்தத்தம்',eveningTitle:'மாலை வாக்குத்தத்தம்',
+    savedTabP:'வாக்குத்தத்தங்கள்',savedTabC:'விசுவாச அறிக்கைகள்',
+    noSavedConf:'சேமித்த விசுவாச அறிக்கைகள் இல்லை. எந்த வாக்குத்தத்தத்திலும் என் விசுவாச அறிக்கையைத் திறந்து சேமிக்கவும்.',
+    savedPos:(a,b)=>`சேமித்தது ${a} / ${b}`,nextSaved:'அடுத்த சேமித்தது',backSaved:'சேமித்தவைக்கு',readFullDev:'அறிக்கை & ஜெபம் வாசி',
     search:'வசனம், தலைப்பு, சொல் தேடுக…',searchSaved:'சேமித்தவற்றில் தேடுக…',
     allCats:'எல்லா பிரிவுகளும்',noRes:'தேடலுக்குப் பொருந்தும் வாக்குத்தத்தங்கள் இல்லை.',
     noSaved:'சேமித்த வாக்குத்தத்தங்கள் இல்லை. எந்த வாக்குத்தத்தத்திலும் சேமி என்பதைத் தட்டவும்.',
@@ -614,6 +626,7 @@ function cleanRem(raw){
 }
 let S=cleanSet(SafeLS.get('bp.set',DEF_SET));
 let saved=cleanSaved(SafeLS.get('bp.saved',[]));
+let savedConf=cleanSaved(SafeLS.get('bp.savedConf',[]));
 let vcache=cleanVCache(SafeLS.get('bp.vcache',null));
 let REM=cleanRem(SafeLS.get('bp.rem',DEF_REM));
 
@@ -634,11 +647,12 @@ let REM=cleanRem(SafeLS.get('bp.rem',DEF_REM));
       }
       SafeLS.set('bp.vcache',vcache);
     }catch{}
-    SafeLS.set('bp.set',S);SafeLS.set('bp.saved',saved);SafeLS.set('bp.rem',REM);SafeLS.set('bp.ver',VER);
+    SafeLS.set('bp.set',S);SafeLS.set('bp.saved',saved);SafeLS.set('bp.savedConf',savedConf);SafeLS.set('bp.rem',REM);SafeLS.set('bp.ver',VER);
   }
 })();
 const saveS=()=>SafeLS.set('bp.set',S);
 const saveSaved=()=>SafeLS.set('bp.saved',saved);
+const saveSavedConf=()=>SafeLS.set('bp.savedConf',savedConf);
 const saveRem=()=>SafeLS.set('bp.rem',REM);
 
 /* ---------- Scripture Engine & Cache ---------- */
@@ -728,12 +742,17 @@ function localDateStr(d=new Date()){
 function localISODate(d=new Date()){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-function daily(d=new Date()){
-  const n=dayOfYear365(d);
+const getSlot=(d=new Date())=>d.getHours()>=18?'evening':'morning';
+function daily(d=new Date(),slot=null){
+  const s=slot||getSlot(d),n=dayOfYear365(d);
+  if(s==='evening'){
+    if(n===366)return LIB[366];
+    return LIB[365+n];
+  }
   if(n===366)return LIB[365];
   return P[(n-1)%P.length];
 }
-const cur=()=>LIB_MAP.get(ST.pid)||daily();
+const cur=()=>LIB_MAP.get(ST.pid)||daily(new Date(),ST.slot);
 const refTxtLang=(p,lang)=>`${(lang==='ta'&&BNT[p.b])||BN[p.b]} ${p.c}:${p.v1}${p.v2>p.v1?'–'+p.v2:''}`;
 const refTxt=p=>refTxtLang(p,S.lang);
 
@@ -751,8 +770,8 @@ function getIdx(){
 }
 
 /* ---------- UI State & Navigation ---------- */
-const ST={tab:'home',step:0,pid:null,cat:null,q:'',filterCat:'',mq:'',lim:40};
-let renderSeq=0,deferredPrompt=null,swReg=null,toastTimer=null;
+const ST={tab:'home',step:0,pid:null,slot:null,ctx:null,mtab:'promises',cat:null,q:'',filterCat:'',mq:'',lim:40};
+let renderSeq=0,deferredPrompt=null,swReg=null,toastTimer=null,lastAutoSlot=getSlot(),lastAutoDay=localISODate();
 
 function toast(msg){
   const el=$('#toast');if(!el)return;
@@ -762,14 +781,14 @@ function toast(msg){
 function go(tab,o={},push=true){
   Object.assign(ST,{tab,step:0,cat:null,lim:40},o);
   if(tab!=='promises'&&o.q===undefined)ST.q='';
-  if(tab!=='home'&&o.pid===undefined)ST.pid=null;
-  if(push){try{history.pushState({tab:ST.tab,pid:ST.pid,cat:ST.cat},'')}catch{}}
+  if(tab!=='home'&&o.pid===undefined){ST.pid=null;ST.ctx=null;ST.slot=null}
+  if(push){try{history.pushState({tab:ST.tab,pid:ST.pid,ctx:ST.ctx,slot:ST.slot,step:ST.step,cat:ST.cat,mtab:ST.mtab},'')}catch{}}
   render();
 }
 addEventListener('popstate',e=>{
   const st=e.state;
-  if(st&&st.tab){Object.assign(ST,{tab:st.tab,pid:st.pid??null,cat:st.cat??null,step:0,lim:40});render()}
-  else if(ST.tab!=='home'||ST.pid||ST.cat){Object.assign(ST,{tab:'home',pid:null,cat:null,step:0,lim:40});render()}
+  if(st&&st.tab){Object.assign(ST,{tab:st.tab,pid:st.pid??null,ctx:st.ctx??null,slot:st.slot??null,cat:st.cat??null,mtab:st.mtab||'promises',step:st.step||0,lim:40});render()}
+  else if(ST.tab!=='home'||ST.pid||ST.cat||ST.ctx){Object.assign(ST,{tab:'home',pid:null,ctx:null,slot:null,cat:null,step:0,lim:40});render()}
 });
 
 function nav(){
@@ -795,11 +814,16 @@ function listHTML(arr,empty,actMore='more'){
   return arr.slice(0,n).map(pcard).join('')+(arr.length>n?`<div class="row"><button type="button" class="p" data-act="${actMore}">${t('showMore')} (${arr.length-n})</button></div>`:'');
 }
 function home(){
-  const p=cur(),s=ST.step,isDaily=!ST.pid;
+  const p=cur(),s=ST.step,isDaily=!ST.pid&&!ST.ctx;
+  const activeSlot=ST.slot||getSlot();
   const doyNum=dayOfYear365();
-  const dateLabel=isDaily?(doyNum===366?`${localDateStr()} · ${t('leapDay')}`:`${localDateStr()} · ${t('dayOf')(doyNum)}`):`${t('promise')} #${p.id}`;
-  const sv=saved.includes(p.id);
-  const full=S.full;
+  const savedArr=ST.ctx==='saved'?saved:ST.ctx==='savedConf'?savedConf:null;
+  const savedIdx=savedArr?savedArr.indexOf(p.id):-1;
+  const dateLabel=ST.ctx&&savedArr&&savedIdx>=0
+    ?t('savedPos')(savedIdx+1,savedArr.length)
+    :isDaily?(doyNum===366?`${localDateStr()} · ${t('leapDay')}`:`${localDateStr()} · ${t('dayOf')(doyNum)}`):`${t('promise')} #${p.id}`;
+  const sv=saved.includes(p.id),svc=savedConf.includes(p.id);
+  const full=S.full&&!ST.ctx;
   const seq=++renderSeq;
 
   const scriptSection=`
@@ -811,7 +835,7 @@ function home(){
       <div class="exp-txt">${esc(L(p.x))}</div>
     </div>`;
   const confSection=`
-    <div class="sec">
+    <div class="sec" style="${ST.ctx==='savedConf'?'margin-top:8px;padding-top:8px;border-top:0':''}">
       <div class="badge">${t('wr')}</div>
       <h2>${t('conf')}</h2>
       <div class="big">${esc(L(p.cf))}</div>
@@ -823,53 +847,94 @@ function home(){
       <div class="big">${esc(L(p.pr))}</div>
     </div>`;
 
-  const body=full
-    ?(scriptSection+confSection+praySection)
-    :(s===0?scriptSection:s===1?confSection:praySection);
+  const body=ST.ctx==='saved'
+    ?scriptSection
+    :ST.ctx==='savedConf'
+      ?confSection
+      :full
+        ?(scriptSection+confSection+praySection)
+        :(s===0?scriptSection:s===1?confSection:praySection);
 
-  const stepTabs=full?'':`
+  const slotBar=isDaily?`
+    <div class="steps" style="grid-template-columns:1fr 1fr;margin:8px 0 6px" role="tablist" aria-label="Time of day">
+      <button type="button" role="tab" aria-selected="${activeSlot==='morning'}" class="step-btn ${activeSlot==='morning'?'on':''}" data-act="slot" data-slot="morning">${UI_ICO.sun} ${t('morning')}</button>
+      <button type="button" role="tab" aria-selected="${activeSlot==='evening'}" class="step-btn ${activeSlot==='evening'?'on':''}" data-act="slot" data-slot="evening">${UI_ICO.moon} ${t('evening')}</button>
+    </div>`:'';
+
+  const stepTabs=(full||ST.ctx)?'':`
     <div class="steps" role="tablist" aria-label="${t('promise')}">
       ${[t('stepScript'),t('stepConf'),t('stepPray')].map((lbl,i)=>`<button type="button" role="tab" aria-selected="${s===i}" class="step-btn ${s===i?'on':''}" data-act="step" data-step="${i}">${i+1}. ${esc(lbl)}</button>`).join('')}
     </div>`;
 
-  const navBtns=`
-    <div class="row" style="margin-top:6px;margin-bottom:6px">
-      <button type="button" class="sm" data-act="prevP" aria-label="${t('prevP')}">‹ ${t('prevP')}</button>
-      ${!isDaily?`<button type="button" class="sm" data-act="todayP">${t('todayBtn')}</button>`:''}
-      <button type="button" class="sm" data-act="nextP" aria-label="${t('nextP')}">${t('nextP')} ›</button>
-      <span class="sp"></span>
-      <button type="button" class="sm ghost" data-act="toggleView">${full?t('stepView'):t('fullView')}</button>
-    </div>`;
+  const navBtns=ST.ctx
+    ?`<div class="row" style="margin-top:6px;margin-bottom:6px">
+        <button type="button" class="sm" data-act="backSaved">‹ ${t('backSaved')}</button>
+        <button type="button" class="sm ghost" data-act="openFullDev">${t('readFullDev')}</button>
+        <span class="sp"></span>
+        <button type="button" class="sm" data-act="prevP" aria-label="${t('prevP')}">‹ ${t('prevP')}</button>
+        <button type="button" class="sm" data-act="nextP" aria-label="${t('nextP')}">${t('nextP')} ›</button>
+      </div>`
+    :`<div class="row" style="margin-top:6px;margin-bottom:6px">
+        <button type="button" class="sm" data-act="prevP" aria-label="${t('prevP')}">‹ ${t('prevP')}</button>
+        ${!isDaily?`<button type="button" class="sm" data-act="todayP">${t('todayBtn')}</button>`:''}
+        <button type="button" class="sm" data-act="nextP" aria-label="${t('nextP')}">${t('nextP')} ›</button>
+        <span class="sp"></span>
+        <button type="button" class="sm ghost" data-act="toggleView">${full?t('stepView'):t('fullView')}</button>
+      </div>`;
 
-  const footBtns=full
+  const footBtns=ST.ctx==='saved'
     ?`<div class="row" style="margin-top:16px">
         <button type="button" class="${sv?'saved-on':''}" data-act="tog" data-id="${p.id}" aria-pressed="${sv}">${UI_ICO.heart(sv)} ${sv?t('saved'):t('save')}</button>
         <button type="button" data-act="share">${UI_ICO.share} ${t('share')}</button>
-        <button type="button" class="sm ghost" data-act="fs" data-d="-2" aria-label="Decrease text size">A−</button>
-        <button type="button" class="sm ghost" data-act="fs" data-d="2" aria-label="Increase text size">A+</button>
         <span class="sp"></span>
-        <button type="button" class="p" data-act="amen">${UI_ICO.spark} ${t('amen')}</button>
+        <button type="button" class="p" data-act="nextP">${t('nextSaved')} ›</button>
       </div>`
-    :`<div class="row" style="margin-top:16px">
-        ${s>0?`<button type="button" data-act="prevStep">‹ ${t('back')}</button>`:''}
-        <button type="button" class="${sv?'saved-on':''}" data-act="tog" data-id="${p.id}" aria-pressed="${sv}">${UI_ICO.heart(sv)} ${sv?t('saved'):t('save')}</button>
-        <button type="button" data-act="share">${UI_ICO.share} ${t('share')}</button>
-        ${s===1?`<button type="button" class="sm ghost" data-act="fs" data-d="-2" aria-label="Decrease text size">A−</button><button type="button" class="sm ghost" data-act="fs" data-d="2" aria-label="Increase text size">A+</button>`:''}
-        <span class="sp"></span>
-        ${s<2?`<button type="button" class="p" data-act="nextStep">${t('next')} ›</button>`:`<button type="button" class="p" data-act="amen">${UI_ICO.spark} ${t('amen')}</button>`}
-      </div>`;
+    :ST.ctx==='savedConf'
+      ?`<div class="row" style="margin-top:16px">
+          <button type="button" class="${svc?'saved-on':''}" data-act="togConf" data-id="${p.id}" aria-pressed="${svc}">${UI_ICO.heart(svc)} ${svc?t('savedConf'):t('saveConf')}</button>
+          <button type="button" data-act="share">${UI_ICO.share} ${t('share')}</button>
+          <span class="sp"></span>
+          <button type="button" class="p" data-act="nextP">${t('nextSaved')} ›</button>
+        </div>`
+      :full
+        ?`<div class="row" style="margin-top:16px">
+            <button type="button" class="${sv?'saved-on':''}" data-act="tog" data-id="${p.id}" aria-pressed="${sv}">${UI_ICO.heart(sv)} ${sv?t('saved'):t('save')}</button>
+            <button type="button" class="${svc?'saved-on':''}" data-act="togConf" data-id="${p.id}" aria-pressed="${svc}">${UI_ICO.heart(svc)} ${svc?t('savedConf'):t('saveConf')}</button>
+            <button type="button" data-act="share">${UI_ICO.share} ${t('share')}</button>
+            <button type="button" class="sm ghost" data-act="fs" data-d="-2" aria-label="Decrease text size">A−</button>
+            <button type="button" class="sm ghost" data-act="fs" data-d="2" aria-label="Increase text size">A+</button>
+            <span class="sp"></span>
+            <button type="button" class="p" data-act="amen">${UI_ICO.spark} ${t('amen')}</button>
+          </div>`
+        :`<div class="row" style="margin-top:16px">
+            ${s>0?`<button type="button" data-act="prevStep">‹ ${t('back')}</button>`:''}
+            ${s===1
+              ?`<button type="button" class="${svc?'saved-on':''}" data-act="togConf" data-id="${p.id}" aria-pressed="${svc}">${UI_ICO.heart(svc)} ${svc?t('savedConf'):t('saveConf')}</button>`
+              :`<button type="button" class="${sv?'saved-on':''}" data-act="tog" data-id="${p.id}" aria-pressed="${sv}">${UI_ICO.heart(sv)} ${sv?t('saved'):t('save')}</button>`}
+            <button type="button" data-act="share">${UI_ICO.share} ${t('share')}</button>
+            ${s===1?`<button type="button" class="sm ghost" data-act="fs" data-d="-2" aria-label="Decrease text size">A−</button><button type="button" class="sm ghost" data-act="fs" data-d="2" aria-label="Increase text size">A+</button>`:''}
+            <span class="sp"></span>
+            ${s<2?`<button type="button" class="p" data-act="nextStep">${t('next')} ›</button>`:`<button type="button" class="p" data-act="amen">${UI_ICO.spark} ${t('amen')}</button>`}
+          </div>`;
+
+  const topTitle=ST.ctx==='saved'
+    ?t('savedTabP')
+    :ST.ctx==='savedConf'
+      ?t('savedTabC')
+      :isDaily?(activeSlot==='evening'?t('eveningTitle'):t('morningTitle')):t('promise');
 
   $('#app').innerHTML=`
     <div class="topbar">
       <div class="brand-row">
         <span class="brand-mark">${UI_ICO.cross}</span>
         <div>
-          <div class="brand">Bible Promises · ${esc(isDaily?t('today'):t('promise'))}</div>
+          <div class="brand">Bible Promises · ${esc(topTitle)}</div>
           <div class="mut" style="font-size:13px">${esc(dateLabel)}</div>
         </div>
       </div>
       <button type="button" class="sm" data-act="quickLang" aria-label="${t('lang')}">${S.lang==='ta'?'EN':'தமிழ்'}</button>
     </div>
+    ${slotBar}
     ${navBtns}
     ${stepTabs}
     <article class="card hero" style="${gs(p.cat)}">
@@ -880,10 +945,10 @@ function home(){
       ${footBtns}
     </article>`;
 
-  if(full||s===0){
+  if(ST.ctx==='saved'||(!ST.ctx&&(full||s===0))){
     verses(p).then(v=>{
       if(seq!==renderSeq)return;
-      const e=$('#vs');if(e&&ST.tab==='home'&&(S.full||ST.step===0)){e.className='';e.innerHTML=vhtml(v)}
+      const e=$('#vs');if(e&&ST.tab==='home'){e.className='';e.innerHTML=vhtml(v)}
     });
   }
 }
@@ -938,32 +1003,41 @@ function cats(){
     </div>`;
 }
 function updateSavedList(){
-  const mc=$('#mcnt');if(mc)mc.textContent=t('countOf')(saved.length,LIB.length);
+  const isConf=ST.mtab==='confessions';
+  const arr=isConf?savedConf:saved;
+  const mc=$('#mcnt');if(mc)mc.textContent=t('countOf')(arr.length,LIB.length);
   const q=ST.mq.toLowerCase().trim();
-  const items=LIB.filter(p=>saved.includes(p.id)).filter(p=>{
+  const items=arr.map(id=>LIB_MAP.get(id)).filter(Boolean).filter(p=>{
     if(!q)return true;
-    return [refTxtLang(p,'en'),refTxtLang(p,'ta'),p.t[0],p.t[1],TV[pk(p)]||'',(typeof EV!=='undefined'&&EV[pk(p)])||'',CATS[p.cat][0],CATS[p.cat][1]].join(' ').toLowerCase().includes(q);
+    return [refTxtLang(p,'en'),refTxtLang(p,'ta'),p.t[0],p.t[1],p.cf[0],p.cf[1],TV[pk(p)]||'',(typeof EV!=='undefined'&&EV[pk(p)])||'',CATS[p.cat][0],CATS[p.cat][1]].join(' ').toLowerCase().includes(q);
   });
   const res=$('#mres');if(!res)return;
-  if(!items.length){res.innerHTML=`<div class="empty card">${esc(saved.length?t('noRes'):t('noSaved'))}</div>`;return}
+  if(!items.length){res.innerHTML=`<div class="empty card">${esc(arr.length?t('noRes'):(isConf?t('noSavedConf'):t('noSaved')))}</div>`;return}
   res.innerHTML=items.slice(0,ST.lim).map(p=>`
     <article class="card item-wrap" style="${gs(p.cat)}">
-      <button type="button" class="item-open" data-act="open" data-id="${p.id}">
+      <button type="button" class="item-open" data-act="${isConf?'openSavedConf':'openSaved'}" data-id="${p.id}">
         <span class="pill-tag"><span class="ico-dot">${cIco(p.cat,12)}</span>${esc(cn(p.cat))}</span>
         <h3>${esc(L(p.t))}</h3>
         <div class="mut">${esc(refTxt(p))}</div>
+        ${isConf?`<div class="mut" style="margin-top:6px;font-size:13.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(L(p.cf))}</div>`:''}
       </button>
       <div class="row" style="margin-top:10px">
-        <button type="button" class="sm" data-act="shareId" data-id="${p.id}">${UI_ICO.share} ${t('share')}</button>
-        <button type="button" class="sm danger" data-act="rmSaved" data-id="${p.id}">${UI_ICO.trash} ${t('remove')}</button>
+        <button type="button" class="sm" data-act="shareId" data-id="${p.id}" data-conf="${isConf?1:0}">${UI_ICO.share} ${t('share')}</button>
+        <button type="button" class="sm danger" data-act="${isConf?'rmSavedConf':'rmSaved'}" data-id="${p.id}">${UI_ICO.trash} ${t('remove')}</button>
       </div>
     </article>`).join('')+(items.length>ST.lim?`<div class="row"><button type="button" class="p" data-act="more">${t('showMore')}</button></div>`:'');
 }
 function mine(){
+  const isConf=ST.mtab==='confessions';
+  const arr=isConf?savedConf:saved;
   $('#app').innerHTML=`
     <div class="topbar"><h1>${t('mine')}</h1><button type="button" class="sm" data-act="quickLang">${S.lang==='ta'?'EN':'தமிழ்'}</button></div>
-    <div id="mcnt" class="mut">${t('countOf')(saved.length,LIB.length)}</div>
-    ${saved.length?`<div class="search-wrap" style="margin-top:10px">${UI_ICO.search}<input type="search" id="mq" value="${esc(ST.mq)}" placeholder="${esc(t('searchSaved'))}" aria-label="${esc(t('searchSaved'))}"></div>`:''}
+    <div class="steps" style="grid-template-columns:1fr 1fr;margin:8px 0 10px" role="tablist" aria-label="${t('mine')}">
+      <button type="button" role="tab" aria-selected="${!isConf}" class="step-btn ${!isConf?'on':''}" data-act="mtab" data-mtab="promises">${esc(t('savedTabP'))} (${saved.length})</button>
+      <button type="button" role="tab" aria-selected="${isConf}" class="step-btn ${isConf?'on':''}" data-act="mtab" data-mtab="confessions">${esc(t('savedTabC'))} (${savedConf.length})</button>
+    </div>
+    <div id="mcnt" class="mut">${t('countOf')(arr.length,LIB.length)}</div>
+    ${arr.length?`<div class="search-wrap" style="margin-top:10px">${UI_ICO.search}<input type="search" id="mq" value="${esc(ST.mq)}" placeholder="${esc(t('searchSaved'))}" aria-label="${esc(t('searchSaved'))}"></div>`:''}
     <div id="mres"></div>`;
   updateSavedList();
 }
@@ -1039,7 +1113,12 @@ function theme(){
 function tog(id){
   saved=saved.includes(id)?saved.filter(x=>x!==id):[...saved,id];
   saveSaved();
-  if(ST.tab==='mine')updateSavedList();else render();
+  if(ST.tab==='mine')mine();else render();
+}
+function togConf(id){
+  savedConf=savedConf.includes(id)?savedConf.filter(x=>x!==id):[...savedConf,id];
+  saveSavedConf();
+  if(ST.tab==='mine')mine();else render();
 }
 function amen(){
   $('#app').innerHTML=`<div class="empty card hero" style="${gs(cur().cat)}"><div class="cat-ico" style="margin:0 auto 14px">${UI_ICO.spark}</div><p class="big">${esc(t('done'))}</p><button type="button" class="p" data-act="todayP">${t('todayBtn')}</button></div>`;
@@ -1086,7 +1165,7 @@ async function copyText(txt){
 /* ---------- Backup Export / Validated Restore ---------- */
 let pendingBackup=null;
 function exportBackup(){
-  const payload={app:'bible-promises',schemaVersion:VER,exportedAt:new Date().toISOString(),saved,settings:S,reminder:REM};
+  const payload={app:'bible-promises',schemaVersion:VER,exportedAt:new Date().toISOString(),saved,savedConf,settings:S,reminder:REM};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -1101,9 +1180,15 @@ function validateBackupObj(obj){
   if(!Array.isArray(obj.saved))return null;
   const sv=cleanSaved(obj.saved);
   if(sv.length!==obj.saved.length&&obj.saved.some(x=>!Number.isInteger(Number(x))))return null;
+  let svc=savedConf;
+  if(obj.savedConf!==undefined){
+    if(!Array.isArray(obj.savedConf))return null;
+    svc=cleanSaved(obj.savedConf);
+    if(svc.length!==obj.savedConf.length&&obj.savedConf.some(x=>!Number.isInteger(Number(x))))return null;
+  }
   const st=obj.settings?cleanSet(obj.settings):S;
   const rm=obj.reminder?cleanRem(obj.reminder):REM;
-  return{saved:sv,settings:st,reminder:rm};
+  return{saved:sv,savedConf:svc,settings:st,reminder:rm};
 }
 function handleImportFile(file){
   if(!file)return;
@@ -1174,20 +1259,44 @@ document.addEventListener('click',async e=>{
   const el=e.target.closest('[data-act]');if(!el)return;
   const act=el.dataset.act;
   if(act==='nav')go(el.dataset.tab);
-  else if(act==='open')go('home',{pid:+el.dataset.id});
+  else if(act==='open')go('home',{pid:+el.dataset.id,ctx:null});
+  else if(act==='openSaved')go('home',{pid:+el.dataset.id,ctx:'saved',step:0});
+  else if(act==='openSavedConf')go('home',{pid:+el.dataset.id,ctx:'savedConf',step:1});
+  else if(act==='backSaved')go('mine',{mtab:ST.ctx==='savedConf'?'confessions':'promises'});
+  else if(act==='openFullDev')go('home',{pid:cur().id,ctx:null,step:ST.ctx==='savedConf'?1:0});
+  else if(act==='mtab'){ST.mtab=el.dataset.mtab;ST.lim=40;mine()}
+  else if(act==='slot'){ST.slot=el.dataset.slot;ST.pid=null;ST.ctx=null;ST.step=0;render()}
   else if(act==='openCat')go('cats',{cat:el.dataset.cat});
   else if(act==='catsBack')go('cats');
   else if(act==='step'){ST.step=+el.dataset.step;render()}
   else if(act==='prevStep'){ST.step=Math.max(0,ST.step-1);render()}
   else if(act==='nextStep'){ST.step=Math.min(2,ST.step+1);render()}
   else if(act==='toggleView'){S.full=!S.full;saveS();render()}
-  else if(act==='prevP'){const c=cur().id;go('home',{pid:c>1?c-1:LIB.length})}
-  else if(act==='nextP'){const c=cur().id;go('home',{pid:c<LIB.length?c+1:1})}
-  else if(act==='todayP')go('home',{pid:null});
+  else if(act==='prevP'){
+    if(ST.ctx){
+      const arr=ST.ctx==='savedConf'?savedConf:saved;
+      if(!arr.length){go('mine');return}
+      const idx=arr.indexOf(cur().id);
+      const nid=arr[(idx-1+arr.length)%arr.length];
+      go('home',{pid:nid,ctx:ST.ctx,step:ST.ctx==='savedConf'?1:0});
+    }else{const c=cur().id;go('home',{pid:c>1?c-1:LIB.length,ctx:null})}
+  }
+  else if(act==='nextP'){
+    if(ST.ctx){
+      const arr=ST.ctx==='savedConf'?savedConf:saved;
+      if(!arr.length){go('mine');return}
+      const idx=arr.indexOf(cur().id);
+      const nid=arr[(idx+1)%arr.length];
+      go('home',{pid:nid,ctx:ST.ctx,step:ST.ctx==='savedConf'?1:0});
+    }else{const c=cur().id;go('home',{pid:c<LIB.length?c+1:1,ctx:null})}
+  }
+  else if(act==='todayP')go('home',{pid:null,ctx:null,slot:null});
   else if(act==='tog')tog(+el.dataset.id);
+  else if(act==='togConf')togConf(+el.dataset.id);
   else if(act==='rmSaved')tog(+el.dataset.id);
+  else if(act==='rmSavedConf')togConf(+el.dataset.id);
   else if(act==='share')openShare(cur());
-  else if(act==='shareId'){const p=LIB_MAP.get(+el.dataset.id);if(p)openShare(p)}
+  else if(act==='shareId'){const p=LIB_MAP.get(+el.dataset.id);if(p){if(el.dataset.conf==='1')ST.step=1;openShare(p)}}
   else if(act==='closeShare'){const d=$('#shareDlg');if(d.close)d.close();else d.removeAttribute('open')}
   else if(act==='doCopy')copyText($('#sharePreview').textContent);
   else if(act==='doNativeShare'){try{await navigator.share({title:'Bible Promises',text:$('#sharePreview').textContent})}catch{}}
@@ -1199,8 +1308,8 @@ document.addEventListener('click',async e=>{
   else if(act==='export')exportBackup();
   else if(act==='importPick')$('#impFile')?.click();
   else if(act==='confirmRestore'&&pendingBackup){
-    saved=pendingBackup.saved;S=pendingBackup.settings;REM=pendingBackup.reminder;
-    saveSaved();saveS();saveRem();pendingBackup=null;
+    saved=pendingBackup.saved;savedConf=pendingBackup.savedConf||[];S=pendingBackup.settings;REM=pendingBackup.reminder;
+    saveSaved();saveSavedConf();saveS();saveRem();pendingBackup=null;
     const d=$('#restoreDlg');if(d.close)d.close();else d.removeAttribute('open');
     theme();scheduleReminder();render();toast(t('restoreDone'));
   }
@@ -1267,11 +1376,20 @@ function showUpdBanner(){
   u.className='banner on';
   u.innerHTML=`<span>${esc(t('updReady'))}</span> <button type="button" class="sm p" data-act="swUpdate">${esc(t('reload'))}</button>`;
 }
+function checkTimeSlot(){
+  const ns=getSlot(),nd=localISODate();
+  if(ns!==lastAutoSlot||nd!==lastAutoDay){
+    lastAutoSlot=ns;lastAutoDay=nd;
+    if(ST.tab==='home'&&!ST.pid&&!ST.ctx&&!ST.slot)render();
+  }
+}
 (function init(){
   theme();net();
-  try{history.replaceState({tab:'home',pid:null,cat:null},'')}catch{}
+  try{history.replaceState({tab:'home',pid:null,ctx:null,slot:null,cat:null},'')}catch{}
   render();
   scheduleReminder();
+  setInterval(checkTimeSlot,60000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkTimeSlot()});
   if('serviceWorker' in navigator&&location.protocol!=='file:'){
     navigator.serviceWorker.register('./sw.js').then(reg=>{
       swReg=reg;
